@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduBooks — Платформа учета учебников</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Верхняя панель навигации -->
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+              <path d="M6 6h10"/>
+              <path d="M6 10h10"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="brand-title">EduBooks <span class="badge-version">v2.0</span></h1>
+            <p class="brand-subtitle">Система инвентаризации и каталога учебной литературы</p>
+          </div>
+        </div>
+
+        <!-- Виджет общей статистики -->
+        <div class="header-stats">
+          <div class="stat-card">
+            <span class="stat-label">Всего книг</span>
+            <span class="stat-value" id="statTotal">0</span>
+          </div>
+          <div class="stat-card stat-success">
+            <span class="stat-label">Новые / Отличные</span>
+            <span class="stat-value" id="statGood">0</span>
+          </div>
+          <div class="stat-card stat-warning">
+            <span class="stat-label">Требуют ремонта</span>
+            <span class="stat-value" id="statRepair">0</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Основной рабочий экран -->
+    <main class="main-content">
+      <div class="content-layout">
+        
+        <!-- Левая колонка: Форма добавления -->
+        <section class="sidebar-section">
+          <div class="panel form-panel">
+            <div class="panel-header">
+              <div class="panel-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="panel-title">Добавить учебник</h2>
+                <p class="panel-desc">Внесите данные нового экземпляра в базу</p>
+              </div>
+            </div>
+
+            <!-- Всплывающий блок ошибок формы -->
+            <div id="formErrorAlert" class="alert-box error" hidden>
+              <div class="alert-icon">⚠️</div>
+              <div class="alert-body">
+                <span class="alert-title">Проверьте заполнение:</span>
+                <ul id="formErrorList"></ul>
+              </div>
+            </div>
+
+            <form id="bookForm" novalidate>
+              <div class="form-group">
+                <label for="bookTitle">
+                  Название учебника <span class="req">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input 
+                    type="text" 
+                    id="bookTitle" 
+                    name="bookTitle"
+                    placeholder="Например: Геометрия 10-11 класс (Атанасян)"
+                    autocomplete="off"
+                  >
+                </div>
+                <span class="input-hint">Пробелы в начале и конце автоматически отсекаются</span>
+              </div>
+
+              <div class="form-group">
+                <label for="bookSubject">
+                  Предмет / Категория <span class="opt">(необязательно)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="bookSubject" 
+                  name="bookSubject"
+                  placeholder="Математика, История, Физика и т.д."
+                  autocomplete="off"
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="bookCondition">
+                  Состояние книги <span class="req">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select id="bookCondition" name="bookCondition">
+                    <option value="" disabled selected>— Выберите состояние книги —</option>
+                    <option value="Новое">🟢 Новое (идеальное, без пометок)</option>
+                    <option value="Отличное">🔵 Отличное (минимальный износ)</option>
+                    <option value="Хорошее">🟡 Хорошее (целый переплёт, лёгкие потёртости)</option>
+                    <option value="Требует ремонта">🔴 Требует ремонта (ветхий переплёт/страницы)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" id="submitBtn" class="btn btn-primary">
+                  <span class="btn-text">Добавить в каталог</span>
+                  <span class="btn-spinner" hidden></span>
+                </button>
+                <button type="button" id="resetBtn" class="btn btn-ghost" title="Сбросить поля">
+                  Сбросить
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Правая колонка: Каталог, поиск и фильтрация -->
+        <section class="catalog-section">
+          <!-- Панель управления каталогом -->
+          <div class="toolbar-panel">
+            <div class="search-box">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.3-4.3"/>
+              </svg>
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Поиск по названию или предмету..."
+                autocomplete="off"
+              >
+              <button type="button" id="clearSearchBtn" class="clear-search-btn" hidden title="Очистить поиск">✕</button>
+            </div>
+
+            <!-- Фильтры по состоянию -->
+            <div class="filter-tabs" id="filterTabs">
+              <button type="button" class="tab-btn active" data-filter="all">Все (<span id="countAll">0</span>)</button>
+              <button type="button" class="tab-btn" data-filter="Новое">Новое</button>
+              <button type="button" class="tab-btn" data-filter="Отличное">Отличное</button>
+              <button type="button" class="tab-btn" data-filter="Хорошее">Хорошее</button>
+              <button type="button" class="tab-btn" data-filter="Требует ремонта">Ремонт</button>
+            </div>
+          </div>
+
+          <!-- Сетка карточек учебников -->
+          <div class="books-container">
+            <div class="books-header">
+              <h3 class="section-heading" id="catalogHeading">Каталог учебников</h3>
+              <div class="catalog-actions">
+                <button type="button" id="exportBtn" class="btn-tool" title="Экспорт в JSON">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Экспорт
+                </button>
+                <button type="button" id="clearAllBtn" class="btn-tool danger" title="Очистить все книги">
+                  Очистить всё
+                </button>
+              </div>
+            </div>
+
+            <!-- Контейнер карточек -->
+            <div id="booksGrid" class="books-grid"></div>
+
+            <!-- Заглушка, если список пуст -->
+            <div id="emptyState" class="empty-state" hidden>
+              <div class="empty-icon">📖</div>
+              <h4 class="empty-title">Учебников не найдено</h4>
+              <p class="empty-desc">Попробуйте изменить параметры поиска или добавьте новый учебник через форму слева.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Плавающие всплывающие уведомления (Toasts) -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
